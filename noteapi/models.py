@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 class Notes(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     note = models.CharField(max_length=50,blank=False,default='')
-    notesesc = models.CharField(max_length=5000,blank=False,default='')
+    notedesc = models.CharField(max_length=5000,blank=False,default='')
 
 
     def __str__(self):
