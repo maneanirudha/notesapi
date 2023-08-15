@@ -7,7 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from noteapi.models import Notes
-from noteapi.serializers import NotesSerializer
+from django.contrib.auth.models import User
+from noteapi.serializers import NotesSerializer,UserSerializer
 from rest_framework.decorators import api_view, authentication_classes , permission_classes
 
 from django.db.models import Q
@@ -63,7 +64,7 @@ def notes_description(request,pk):
         user = request.user
         ''' Sort the notes list based on note id and check if that particular note 
         belongs to that user or not'''
-        notes = Notes.objects.get(Q(pk=pk),Q(user=user))
+        Notes.objects.get(Q(pk=pk),Q(user=user))
 
     except Notes.DoesNotExist:
         return JsonResponse({'message':'This note does not exist in your list'},status=status.HTTP_404_NOT_FOUND)
@@ -91,3 +92,26 @@ def notes_description(request,pk):
     elif request.method == 'DELETE':
         notes.delete()
         return JsonResponse({'message':'Note was deleted successfully!'},status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST',])
+def CreateUser(request):
+    if request.method == 'POST':
+        # temp = request.POST.get("username")
+        user_data = JSONParser().parse(request)
+        user_serializer = UserSerializer(data=user_data)
+        # temp = request.POST['username']
+        username = user_data.get("username")
+        email = user_data.get("email")
+        password = user_data.get("password")
+
+        '''check if user is already exist in system with same username or email'''
+        if User.objects.filter(Q(username=username) | Q(email=email)):
+            return JsonResponse({'message':'account already exist'},status=status.HTTP_400_BAD_REQUEST)
+        elif user_serializer.is_valid():
+            user = User.objects.create_user(username,email,password)
+            user.save()
+            return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
+        return JsonResponse(user_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        
+

@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/notes/',views.note_list),
-    path('api/notes/<int:pk>/',views.notes_description)
+    path('api/notes/<int:pk>/',views.notes_description),
+    path('api/newuser/',views.CreateUser)
 ]
