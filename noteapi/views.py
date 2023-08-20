@@ -6,12 +6,13 @@ from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated 
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from noteapi.models import Notes
+from noteapi.models import Notes,Useractivation
 from django.contrib.auth.models import User
-from noteapi.serializers import NotesSerializer,UserSerializer
+from noteapi.serializers import NotesSerializer,UserSerializer,UserValidation
 from rest_framework.decorators import api_view, authentication_classes , permission_classes
 
 from django.db.models import Q
+import random
 
 @api_view(['GET','POST',])
 @authentication_classes([BasicAuthentication])
@@ -64,7 +65,8 @@ def notes_description(request,pk):
         user = request.user
         ''' Sort the notes list based on note id and check if that particular note 
         belongs to that user or not'''
-        Notes.objects.get(Q(pk=pk),Q(user=user))
+        notes = Notes.objects.get(Q(pk=pk),Q(user=user))
+        # notes = Notes.objects.all()
 
     except Notes.DoesNotExist:
         return JsonResponse({'message':'This note does not exist in your list'},status=status.HTTP_404_NOT_FOUND)
@@ -111,7 +113,49 @@ def CreateUser(request):
         elif user_serializer.is_valid():
             user = User.objects.create_user(username,email,password)
             user.save()
+
+            otp = random.randint(1111,9999)
+            user_obj = UserValidation(data={'otp': otp,'user_id':user})
+            user_obj.is_valid()
+            user_obj.save(user = user)
+            
+            print(otp)
+
             return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
         return JsonResponse(user_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(['PATCH',])
+def VerifyUser(request):
+    if request.method == 'PATCH':
+        
+        user = request.user
+        user_data = JSONParser().parse(request)
 
+        email = user_data.get("email")
+        otp = user_data.get("otp")
+        db_otp = ''
+        print(otp)
+        if User.objects.filter(Q(email=email)):
+
+            # print(User.objects.filter(Q(email=email)))
+            
+            temp = Useractivation.objects.filter(user=user).values()
+            getdata = Useractivation.objects.get(Q(user=user))
+            for temp in temp:
+                db_otp = temp['otp']
+            
+            # print(db_otp)
+
+            if otp == db_otp:
+                user_active = UserValidation(getdata,data={'otp':otp,'is_active':True})
+                user_active.is_valid()
+                user_active.save(user=user)
+                return JsonResponse({'message':'User verified successfully'},status=status.HTTP_200_OK)
+
+            else:
+                return JsonResponse({'message':'Verification code incorrect'},status=status.HTTP_200_OK)
+                
+        else:
+            return JsonResponse({'message':'User Not Found'})

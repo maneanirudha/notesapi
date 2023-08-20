@@ -23,5 +23,6 @@ urlpatterns = [
 
     path('api/notes/',views.note_list),
     path('api/notes/<int:pk>/',views.notes_description),
-    path('api/newuser/',views.CreateUser)
+    path('api/newuser/',views.CreateUser),
+    path('api/verifyuser/',views.VerifyUser)
 ]
