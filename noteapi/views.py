@@ -38,23 +38,41 @@ def note_list(request):
 
 
         user = request.user
-        
-        notes = Notes.objects.all()
+        user_data = JSONParser().parse(request)
 
-        notes_data = JSONParser().parse(request)
+        if User.objects.filter(Q(username=user)):
+  
+            getdata = Useractivation.objects.filter(user=user).values()
+            print(getdata)
 
-        notes_serializer = NotesSerializer(data=notes_data)
+            for isactive in getdata:
+                is_active_status = isactive['is_active']
+                print(is_active_status)
+            
+            if is_active_status == True:
 
-        if Notes.objects.filter(note=notes_data.get("note")).values():
-            return JsonResponse({'message':'The note is already exist'},status=status.HTTP_400_BAD_REQUEST)
-        # print(arr)
-        # print(countries_data.get("name"))
+                user = request.user
+                
+                notes = Notes.objects.all()
 
+                # notes_data = JSONParser().parse(request)
+
+                notes_serializer = NotesSerializer(data=user_data)
+
+                if Notes.objects.filter(note=user_data.get("note")).values():
+                    return JsonResponse({'message':'The note is already exist'},status=status.HTTP_400_BAD_REQUEST)
+                # print(arr)
+                # print(countries_data.get("name"))
+
+                else:
+                    if notes_serializer.is_valid():
+                        notes_serializer.save(user = user)
+                        return JsonResponse(notes_serializer.data,status=status.HTTP_201_CREATED)
+                    return JsonResponse(notes_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return JsonResponse({'message':'please verify your email'})
         else:
-            if notes_serializer.is_valid():
-                notes_serializer.save(user = user)
-                return JsonResponse(notes_serializer.data,status=status.HTTP_201_CREATED)
-            return JsonResponse(notes_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message':'User not Found!'})
 
 
 @api_view(['GET','PUT','DELETE','PATCH'])
