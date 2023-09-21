@@ -3,6 +3,8 @@ from django.http.response import JsonResponse
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication 
+from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated 
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -15,7 +17,7 @@ from django.db.models import Q
 import random
 
 @api_view(['GET','POST',])
-@authentication_classes([BasicAuthentication])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def note_list(request):
     if request.method == 'GET':
@@ -76,7 +78,7 @@ def note_list(request):
 
 
 @api_view(['GET','PUT','DELETE','PATCH'])
-@authentication_classes([BasicAuthentication])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def notes_description(request,pk):
     try:
@@ -142,7 +144,7 @@ def CreateUser(request):
             return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
         return JsonResponse(user_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
-@authentication_classes([BasicAuthentication])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 @api_view(['PATCH',])
 def VerifyUser(request):
