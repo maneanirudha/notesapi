@@ -1,1 +1,11 @@
+# Environments
+.env
 env/
+
+
+migrations/
+
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/

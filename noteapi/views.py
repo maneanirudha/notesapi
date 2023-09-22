@@ -8,6 +8,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated 
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from django.core.mail import send_mail
+from django.conf import settings
+
 from noteapi.models import Notes,Useractivation
 from django.contrib.auth.models import User
 from noteapi.serializers import NotesSerializer,UserSerializer,UserValidation
@@ -135,10 +138,14 @@ def CreateUser(request):
             user.save()
 
             otp = random.randint(1111,9999)
+            subject = "Notes app account verification code"
+            message = f"Your verification code is {otp}"
+            email_from = settings.EMAIL_HOST_USER
+            recipient_list = [email]
+            send_mail(subject,message,email_from,recipient_list)
             user_obj = UserValidation(data={'otp': otp,'user_id':user})
             user_obj.is_valid()
             user_obj.save(user = user)
-            
             print(otp)
 
             return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
