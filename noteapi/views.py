@@ -134,20 +134,23 @@ def CreateUser(request):
         if User.objects.filter(Q(username=username) | Q(email=email)):
             return JsonResponse({'message':'account already exist'},status=status.HTTP_400_BAD_REQUEST)
         elif user_serializer.is_valid():
-            user = User.objects.create_user(username,email,password)
-            user.save()
 
             otp = random.randint(1111,9999)
             subject = "Notes app account verification code"
             message = f"Your verification code is {otp}"
             email_from = settings.EMAIL_HOST_USER
             recipient_list = [email]
-            send_mail(subject,message,email_from,recipient_list)
-            user_obj = UserValidation(data={'otp': otp,'user_id':user})
-            user_obj.is_valid()
-            user_obj.save(user = user)
-            print(otp)
-
+            
+            res = send_mail(subject,message,email_from,recipient_list)
+            # Checks email config is correct or not and then creates a user
+            if res==1:
+                user = User.objects.create_user(username,email,password)
+                user.save()
+                user_obj = UserValidation(data={'otp': otp,'user_id':user})
+                user_obj.is_valid()
+                user_obj.save(user = user)
+                print(otp)
+                print(res)
             return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
         return JsonResponse(user_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
