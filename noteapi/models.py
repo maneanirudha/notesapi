@@ -23,3 +23,22 @@ class Useractivation(models.Model):
 
     class Meta:
         ordering = ('id',)
+
+class Subscriptionplans(models.Model):
+    plan_name = models.CharField(max_length=25,blank=False)
+    plan_validity = models.IntegerField(blank=False)
+    note_limit = models.IntegerField()
+
+    def __str__(self):
+        return self.plan_name
+
+    class Meta:
+        ordering = ('id',)
+
+class User_subscription_details(models.Model):
+    sub = models.ForeignKey(Subscriptionplans,on_delete=models.CASCADE,blank=False,null=True)
+    user = models.ForeignKey(User,on_delete=models.CASCADE,blank=False)
+    subcription_date = models.DateTimeField(blank=False)
+
+    class Meta:
+        ordering = ('id',)
