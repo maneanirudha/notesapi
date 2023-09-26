@@ -27,7 +27,7 @@ class Useractivation(models.Model):
 class Subscriptionplans(models.Model):
     plan_name = models.CharField(max_length=25,blank=False)
     plan_validity = models.IntegerField(blank=False)
-    note_limit = models.IntegerField()
+    note_limit = models.IntegerField(blank=True,null=True)
 
     def __str__(self):
         return self.plan_name
