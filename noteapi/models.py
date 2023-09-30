@@ -19,7 +19,7 @@ class Useractivation(models.Model):
     is_active = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user
+        return self.otp
 
     class Meta:
         ordering = ('id',)
@@ -38,7 +38,12 @@ class Subscriptionplans(models.Model):
 class User_subscription_details(models.Model):
     sub = models.ForeignKey(Subscriptionplans,on_delete=models.CASCADE,blank=False,null=True)
     user = models.ForeignKey(User,on_delete=models.CASCADE,blank=False)
-    subcription_date = models.DateTimeField(blank=False)
+    subcription_date = models.DateField(blank=False)
+
+    # def __str__(self):
+    #     return self.sub
 
     class Meta:
         ordering = ('id',)
+
+    

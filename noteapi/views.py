@@ -11,12 +11,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.conf import settings
 
-from noteapi.models import Notes,Useractivation
+from noteapi.models import Notes,Useractivation,User_subscription_details,Subscriptionplans
 from django.contrib.auth.models import User
 from noteapi.serializers import NotesSerializer,UserSerializer,UserValidation
 from rest_framework.decorators import api_view, authentication_classes , permission_classes
 
 from django.db.models import Q
+from datetime import date
 import random
 
 @api_view(['GET','POST',])
@@ -48,11 +49,11 @@ def note_list(request):
         if User.objects.filter(Q(username=user)):
   
             getdata = Useractivation.objects.filter(user=user).values()
-            print(getdata)
+            # print(getdata)
 
             for isactive in getdata:
                 is_active_status = isactive['is_active']
-                print(is_active_status)
+                # print(is_active_status)
             
             if is_active_status == True:
 
@@ -64,16 +65,43 @@ def note_list(request):
 
                 notes_serializer = NotesSerializer(data=user_data)
 
-                if Notes.objects.filter(note=user_data.get("note")).values():
-                    return JsonResponse({'message':'The note is already exist'},status=status.HTTP_400_BAD_REQUEST)
-                # print(arr)
-                # print(countries_data.get("name"))
+                getsubid = User_subscription_details.objects.filter(user=user).values()
 
-                else:
-                    if notes_serializer.is_valid():
-                        notes_serializer.save(user = user)
-                        return JsonResponse(notes_serializer.data,status=status.HTTP_201_CREATED)
-                    return JsonResponse(notes_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+                for subid in getsubid:
+                    sub_id = subid['sub_id']
+                    subcription_date = subid['subcription_date']
+                
+                # print(sub_id)
+                # print(subcription_date)
+
+                today = date.today()
+
+                date_diff = (today-subcription_date).days
+
+                if sub_id==1:
+                    user_notes = Notes.objects.filter(user=user).values()
+                    current_note_count = len(user_notes)
+
+                    if current_note_count == 5:
+
+                        return JsonResponse({'message':'you have only 5 notes limit to add, please subscribe for paid plans'})
+
+                    elif date_diff>30:
+
+                        return JsonResponse({'message':'your free trial is expired!'})
+
+                    else:
+                        if Notes.objects.filter(note=user_data.get("note")).values():
+                            return JsonResponse({'message':'The note is already exist'},status=status.HTTP_400_BAD_REQUEST)
+                    # print(arr)
+                    # print(countries_data.get("name"))
+
+                        else:
+                            if notes_serializer.is_valid():
+                                notes_serializer.save(user = user)
+                                return JsonResponse(notes_serializer.data,status=status.HTTP_201_CREATED)
+                        return JsonResponse(notes_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
             else:
                 return JsonResponse({'message':'please verify your email'})
         else:
@@ -189,3 +217,28 @@ def VerifyUser(request):
                 
         else:
             return JsonResponse({'message':'User Not Found'})
+
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(['GET',])
+def Test(request):
+    if request.method == 'GET':
+
+
+        user = request.user
+        # user_data = JSONParser().parse(request)
+
+        if User_subscription_details.objects.filter(Q(user=user)):
+  
+            getsubid = User_subscription_details.objects.filter(user=user).values()
+
+            for subid in getsubid:
+                sub_id = subid['sub_id']
+            
+            print(sub_id)
+
+
+
+            return JsonResponse({'message':'data found'})
+
+            

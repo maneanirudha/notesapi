@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/notes/<int:pk>/',views.notes_description),
     path('api/newuser/',views.CreateUser),
     path('api/verifyuser/',views.VerifyUser),
+    path('api/test/',views.Test),
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
