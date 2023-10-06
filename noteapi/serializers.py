@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from noteapi.models import Notes,Useractivation
+from noteapi.models import Notes,Useractivation,User_subscription_details
 from django.contrib.auth.models import User
 
 
@@ -26,3 +26,8 @@ class VerifyUser(serializers.ModelSerializer):
    class Meta:
       model = Useractivation,User
       fields = ('email','otp')
+
+class Subscription_details(serializers.ModelSerializer):
+   class Meta:
+      model = User_subscription_details
+      fields = ('subcription_date','sub','user_id')

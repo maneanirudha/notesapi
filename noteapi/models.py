@@ -36,7 +36,7 @@ class Subscriptionplans(models.Model):
         ordering = ('id',)
 
 class User_subscription_details(models.Model):
-    sub = models.ForeignKey(Subscriptionplans,on_delete=models.CASCADE,blank=False,null=True)
+    sub = models.IntegerField(blank=False)
     user = models.ForeignKey(User,on_delete=models.CASCADE,blank=False)
     subcription_date = models.DateField(blank=False)
 

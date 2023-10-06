@@ -13,7 +13,7 @@ from django.conf import settings
 
 from noteapi.models import Notes,Useractivation,User_subscription_details,Subscriptionplans
 from django.contrib.auth.models import User
-from noteapi.serializers import NotesSerializer,UserSerializer,UserValidation
+from noteapi.serializers import NotesSerializer,UserSerializer,UserValidation,Subscription_details
 from rest_framework.decorators import api_view, authentication_classes , permission_classes
 
 from django.db.models import Q
@@ -68,13 +68,16 @@ def note_list(request):
                 getsubid = User_subscription_details.objects.filter(user=user).values()
 
                 for subid in getsubid:
-                    sub_id = subid['sub_id']
+                    sub_id = subid['sub']
                     subcription_date = subid['subcription_date']
                 
                 # print(sub_id)
                 # print(subcription_date)
 
+                
                 today = date.today()
+
+                # Calculates date difference between todays date and subscription date
 
                 date_diff = (today-subcription_date).days
 
@@ -157,7 +160,11 @@ def CreateUser(request):
         username = user_data.get("username")
         email = user_data.get("email")
         password = user_data.get("password")
+        sub = user_data.get("sub_id")
 
+        print(sub)
+
+        # return JsonResponse({'messgae':'fetched succesfully'})
         '''check if user is already exist in system with same username or email'''
         if User.objects.filter(Q(username=username) | Q(email=email)):
             return JsonResponse({'message':'account already exist'},status=status.HTTP_400_BAD_REQUEST)
@@ -177,10 +184,28 @@ def CreateUser(request):
                 user_obj = UserValidation(data={'otp': otp,'user_id':user})
                 user_obj.is_valid()
                 user_obj.save(user = user)
-                print(otp)
-                print(res)
+
+                get_user_id = User.objects.filter(Q(username=username)).values()
+
+                for user_id in get_user_id:
+                    new_user_id = user_id['id']
+            
+
+                print(new_user_id)
+
+                sub_date = date.today()
+                sub_serializer = Subscription_details(data={'subcription_date':sub_date,'sub':sub,'user_id':new_user_id})
+                sub_serializer.is_valid()
+                print(sub_serializer)
+                print(sub_serializer.is_valid())
+
+                sub_serializer.save(user=user)
+
+                # print(otp)
+                # print(res)
             return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
         return JsonResponse(user_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        
         
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
